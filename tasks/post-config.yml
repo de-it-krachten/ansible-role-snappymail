@@ -1,0 +1,11 @@
+---
+
+- name: Read initial admin password
+  ansible.builtin.command:
+    cmd: cat {{ snappymail_path }}/data/_data_/_default_/admin_password.txt
+  changed_when: false
+  register: __admin_password
+
+- name: Show initial admin password
+  ansible.builtin.debug:
+    msg: "Initial admin password : {{ __admin_password.stdout }}"

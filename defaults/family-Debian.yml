@@ -1,0 +1,15 @@
+---
+
+# list of packages
+snappymail_packages:
+  - unzip
+  - rsync
+
+# default web service
+snappymail_web_server: nginx
+
+# web service
+snappymail_web_service: "{{ 'apache2' if snappymail_web_server == 'apache' else 'nginx' }}"
+
+# php socket
+snappymail_php_socket: /var/run/php/php-fpm.sock

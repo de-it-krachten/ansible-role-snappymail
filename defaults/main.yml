@@ -1,0 +1,33 @@
+---
+
+# snappymail version
+snappymail_version: latest
+
+# Github API endpoint to get latest version
+snappymail_api: https://api.github.com/repos/the-djmaze/snappymail
+
+# Github release archive
+snappymail_url: >-
+  https://github.com/the-djmaze/snappymail/releases/download/v{{ snappymail_version }}/snappymail-{{ snappymail_version }}.tar.gz
+
+# directory to put temporary download file into
+snappymail_tmpdir: /tmp
+
+# local file
+snappymail_file: '{{ snappymail_tmpdir }}/snappymail-community-latest.zip'
+
+# temporary directory
+snappymail_tmp: "{{ snappymail_tmpdir }}/snappymail-tmp"
+
+# OS user/group
+snappymail_user: "{{ 'apache' if snappymail_web_server == 'apache' else 'www-data' }}"
+snappymail_group: "{{ 'apache' if snappymail_web_server == 'apache' else 'www-data' }}"
+
+# Restrict access to local loopback
+snappymail_restrict_access: false
+
+# dict of snappymail settings
+snappymail_settings: {}
+
+# Default domain template
+snappymail_domain_template: domain.j2

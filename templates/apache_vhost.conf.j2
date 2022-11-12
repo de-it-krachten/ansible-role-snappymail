@@ -1,0 +1,35 @@
+<VirtualHost *:80>
+
+  ServerName {{ snappymail_vhost }}
+  Redirect permanent / https://{{ snappymail_vhost }}
+
+</VirtualHost>
+
+<VirtualHost *:443>
+
+  ServerName   {{ snappymail_vhost }}
+  ServerAlias  {{ snappymail_vhost }}
+  DocumentRoot {{ snappymail_path }}
+  ErrorLog     {{ snappymail_log }}/error.log
+  CustomLog    {{ snappymail_log }}/access.log combined
+  SSLEngine    on
+  SSLProtocol {{ apache_ssl_settings.SSLProtocol }}
+  SSLCipherSuite {{ apache_ssl_settings.SSLCipherSuite }}
+  SSLHonorCipherOrder {{ apache_ssl_settings.SSLHonorCipherOrder }}
+  SSLCertificateFile {{ snappymail_ssl_crt }}
+  SSLCertificateKeyFile {{ snappymail_ssl_key }}
+  SSLCertificateChainFile {{ snappymail_ssl_chain }}
+
+  <Directory />
+    Options +Indexes +FollowSymLinks +ExecCGI
+    AllowOverride All
+    Order deny,allow
+    Allow from all
+    Require all granted
+  </Directory>
+
+  <Directory {{ snappymail_path }}/data>
+    Require all denied
+  </Directory>
+
+</VirtualHost>

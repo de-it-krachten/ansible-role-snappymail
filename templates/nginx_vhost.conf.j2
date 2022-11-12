@@ -1,0 +1,43 @@
+server {
+
+    listen              443 ssl;
+    server_name         {{ snappymail_vhost }};
+
+    ssl_certificate     {{ snappymail_ssl_crt }};
+    ssl_certificate_key {{ snappymail_ssl_key }};
+    ssl_protocols       TLSv1.2 TLSv1.3;
+    ssl_ciphers         HIGH:!aNULL:!MD5;
+
+    root                {{ snappymail_path }};
+    access_log          {{ snappymail_log }}/access.log;
+    error_log           {{ snappymail_log }}/error.log;
+
+    index               index.php;
+
+{% if snappymail_restrict_access|bool %}
+    allow 127.0.0.1;
+    deny all;
+{% endif %}
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        fastcgi_index index.php;
+        fastcgi_split_path_info ^(.+\.php)(.*)$;
+        fastcgi_keep_conn on;
+        include /etc/nginx/fastcgi_params;
+        fastcgi_pass unix:{{ snappymail_php_socket }};
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    }
+
+    location ~ /\.ht {
+        deny all;
+    }
+
+    location ^~ /data {
+        deny all;
+    }
+
+}

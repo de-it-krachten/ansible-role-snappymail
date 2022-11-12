@@ -1,0 +1,6 @@
+---
+
+- name: Restarting web service
+  ansible.builtin.service:
+    name: "{{ snappymail_web_service }}"
+    state: restarted

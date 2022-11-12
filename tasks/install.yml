@@ -1,0 +1,107 @@
+---
+
+- name: Get version
+  when: snappymail_version == 'latest'
+  block:
+
+    - name: Get latest release of a public repository
+      ansible.builtin.uri:
+        url: "{{ snappymail_api + '/releases/latest' }}"
+      check_mode: no
+      register: snappymail_release_latest
+
+    - name: Register the version only
+      ansible.builtin.set_fact:
+        snappymail_version: "{{ snappymail_release_latest['json']['name'] | regex_replace('^v') }}"
+
+- name: Install packages
+  ansible.builtin.package:
+    name: "{{ snappymail_packages }}"
+    state: present
+
+- name: Download the latest version
+  ansible.builtin.get_url:
+    url: "{{ snappymail_url }}"
+    dest: "{{ snappymail_file }}"
+    mode: "0644"
+  check_mode: no
+  changed_when: false
+
+- name: Delete temporary directory
+  ansible.builtin.file:
+    path: "{{ snappymail_tmp }}"
+    state: absent
+  check_mode: no
+  changed_when: false
+
+- name: Create temporary extract directory
+  ansible.builtin.file:
+    path: "{{ snappymail_tmp }}"
+    state: directory
+    owner: "{{ snappymail_user }}"
+    group: "{{ snappymail_group }}"
+    mode: "0755"
+  check_mode: no
+  changed_when: false
+
+- name: Extract the software
+  ansible.builtin.unarchive:
+    src: "{{ snappymail_file }}"
+    dest: "{{ snappymail_tmp }}"
+    owner: "{{ snappymail_user }}"
+    group: "{{ snappymail_group }}"
+    mode: "0755"
+    remote_src: true
+  check_mode: no
+  changed_when: false
+
+- name: Change ownership
+  ansible.builtin.file:
+    path: "{{ snappymail_tmp }}"
+    owner: "{{ snappymail_user }}"
+    group: "{{ snappymail_group }}"
+    recurse: true
+  check_mode: no
+  changed_when: false
+
+- name: Create snappymail directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ snappymail_user }}"
+    group: "{{ snappymail_group }}"
+    mode: "0755"
+  loop:
+    - "{{ snappymail_path }}"
+    - "{{ snappymail_log }}"
+  tags: molecule-idempotence-notest
+
+- name: Rsync data
+  ansible.posix.synchronize:
+    src: "{{ snappymail_tmp }}/"
+    dest: "{{ snappymail_path }}"
+    rsync_opts:
+      - "--omit-dir-times"
+  delegate_to: "{{ inventory_hostname }}"
+  notify: Restarting web service
+  tags: molecule-idempotence-notest
+
+- name: Set SELinux labels
+  community.general.sefcontext:
+    target: '{{ item.target }}'
+    setype: '{{ item.setype }}'
+    state: present
+  with_items:
+    - { target: '{{ snappymail_path }}(/.*)?', setype: httpd_sys_content_t }
+    - { target: '{{ snappymail_path }}/data(/.*)?', setype: httpd_sys_rw_content_t }
+  notify: Restarting web service
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_facts.selinux.status == 'enabled'
+
+- name: Remove temporary directory {{ snappymail_tmp }}
+  ansible.builtin.file:
+    path: "{{ snappymail_tmp }}"
+    state: absent
+  check_mode: no
+  changed_when: false

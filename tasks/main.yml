@@ -1,0 +1,28 @@
+---
+
+# Assertions
+- name: Assertions
+  ansible.builtin.assert:
+    that:
+      - snappymail_path is defined
+      - snappymail_log is defined
+
+# Load OS specific vars
+- name: Load variables based on OS type
+  ansible.builtin.include_tasks: vars.yml
+
+# Install phase
+- name: Install snappymail
+  ansible.builtin.include_tasks: install.yml
+
+# Config phase
+- name: Config snappymail
+  ansible.builtin.include_tasks: config.yml
+
+# Post-config phase
+- name: Post-config snappymail
+  ansible.builtin.include_tasks: post-config.yml
+
+# Flush handlers
+- name: Force all handlers to run now
+  ansible.builtin.meta: flush_handlers

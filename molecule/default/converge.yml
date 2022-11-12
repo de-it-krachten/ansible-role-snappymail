@@ -1,0 +1,39 @@
+---
+
+- name: Converge
+  hosts: all
+  become: "yes"
+  vars:
+    openssl_fqdn: server.example.com
+    apache_fqdn: "{{ openssl_fqdn }}"
+    apache_ssl_key: "{{ openssl_server_key }}"
+    apache_ssl_crt: "{{ openssl_server_crt }}"
+    apache_ssl_chain: "{{ openssl_server_crt }}"
+    nginx_server_name: webmail.example.com
+    nginx_ssl_key: "{{ openssl_server_key }}"
+    nginx_ssl_crt: "{{ openssl_server_crt }}"
+    nginx_root: /var/www/webmail.example.com/public_html
+    nginx_logdir: /var/www/webmail.example.com/log
+    snappymail_vhost: webmail.example.com
+    snappymail_domain: example.com
+    snappymail_ssl_key: "{{ openssl_server_key }}"
+    snappymail_ssl_crt: "{{ openssl_server_crt }}"
+    snappymail_ssl_chain: "{{ openssl_server_crt }}"
+    snappymail_path: /var/www/webmail.example.com/public_html
+    snappymail_log: /var/www/webmail.example.com/log
+    snappymail_web_server: "{{ 'apache' if ansible_os_family == 'RedHat' else 'nginx' }}"
+  pre_tasks:
+    - name: Create 'remote_tmp'
+      ansible.builtin.file:
+        path: /root/.ansible/tmp
+        state: directory
+        mode: "0700"
+  roles:
+    - openssl
+    - {'role': 'apache', 'when': "ansible_os_family == 'RedHat'"}
+    - {'role': 'nginx', 'when': "ansible_os_family == 'Debian'"}
+    - php
+  tasks:
+    - name: Include role 'ansible-role-snappymail'
+      ansible.builtin.include_role:
+        name: ansible-role-snappymail

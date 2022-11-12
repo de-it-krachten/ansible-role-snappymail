@@ -1,0 +1,51 @@
+---
+
+- name: Configure snappymail using apache vhost
+  ansible.builtin.template:
+    src: templates/apache_vhost.conf.j2
+    dest: "{{ apache_conf_dir }}/{{ snappymail_vhost }}.conf"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restarting web service
+  when: snappymail_web_server == 'apache'
+
+- name: Configure snappymail using nginx vhost
+  ansible.builtin.template:
+    src: templates/nginx_vhost.conf.j2
+    dest: "{{ nginx_confd_path }}/{{ snappymail_vhost }}.conf"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restarting web service
+  when: snappymail_web_server == 'nginx'
+
+- name: Check if initial config is done
+  ansible.builtin.stat:
+    path: "{{ snappymail_path }}/data/_data_/_default_/configs/application.ini"
+  register: _app_ini
+
+- name: Update settings
+  when: _app_ini.stat.exists
+  block:
+
+    - name: Update global settings
+      ansible.builtin.lineinfile:
+        path: "{{ snappymail_path }}/data/_data_/_default_/configs/application.ini"
+        line: >-
+          {% if item.value is search('^(On|Off)$') %}
+          {{ item.key }} = {{ item.value }}
+          {% else %}
+          {{ item.key }} = "{{ item.value }}"
+          {% endif %}
+        regexp: "^{{ item.key }} =.*"
+      loop: "{{ snappymail_settings | dict2items }}"
+
+    - name: Update domain settings
+      ansible.builtin.template:
+        src: "{{ snappymail_domain_template }}"
+        dest: "{{ snappymail_path }}/data/_data_/_default_/domains/{{ item }}.ini"
+        owner: "{{ snappymail_user }}"
+        group: "{{ snappymail_group }}"
+        mode: "0644"
+      loop: "{{ snappymail_domains | default([snappymail_domain]) }}"
