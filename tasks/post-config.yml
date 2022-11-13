@@ -1,11 +1,24 @@
 ---
 
+- name: Define host in /etc/hosts
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    line: 127.0.0.1 {{ snappymail_vhost }}
+    regexp: '.*{{ snappymail_vhost }}'
+
+- name: Force data file creation
+  ansible.builtin.uri:
+    url: "https://{{ snappymail_vhost }}/?admin"
+    validate_certs: false
+
 - name: Read initial admin password
   ansible.builtin.command:
-    cmd: cat {{ snappymail_path }}/data/_data_/_default_/admin_password.txt
+    cmd: cat {{ snappymail_data_path }}/_data_/_default_/admin_password.txt
   changed_when: false
+  failed_when: false
   register: __admin_password
 
 - name: Show initial admin password
   ansible.builtin.debug:
     msg: "Initial admin password : {{ __admin_password.stdout }}"
+  when: __admin_password.stdout is defined

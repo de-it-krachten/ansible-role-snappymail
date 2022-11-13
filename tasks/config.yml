@@ -20,9 +20,24 @@
   notify: Restarting web service
   when: snappymail_web_server == 'nginx'
 
+- name: Activate custom include.php
+  ansible.builtin.template:
+    src: templates/include.php.j2
+    dest: "{{ snappymail_path }}/include.php"
+    owner: "{{ snappymail_user }}"
+    group: "{{ snappymail_group }}"
+    mode: "0644"
+  notify: Restarting web service
+
+- name: Delete temporary symbolic link
+  ansible.builtin.file:
+    path: "{{ snappymail_path }}/data"
+    state: absent
+  when: snappymail_data_path != snappymail_path+'/data'
+
 - name: Check if initial config is done
   ansible.builtin.stat:
-    path: "{{ snappymail_path }}/data/_data_/_default_/configs/application.ini"
+    path: "{{ snappymail_data_path }}/_data_/_default_/configs/application.ini"
   register: _app_ini
 
 - name: Update settings
@@ -31,7 +46,7 @@
 
     - name: Update global settings
       ansible.builtin.lineinfile:
-        path: "{{ snappymail_path }}/data/_data_/_default_/configs/application.ini"
+        path: "{{ snappymail_data_path }}/_data_/_default_/configs/application.ini"
         line: >-
           {% if item.value is search('^(On|Off)$') %}
           {{ item.key }} = {{ item.value }}
@@ -44,7 +59,7 @@
     - name: Update domain settings
       ansible.builtin.template:
         src: "{{ snappymail_domain_template }}"
-        dest: "{{ snappymail_path }}/data/_data_/_default_/domains/{{ item }}.ini"
+        dest: "{{ snappymail_data_path }}/_data_/_default_/domains/{{ item }}.ini"
         owner: "{{ snappymail_user }}"
         group: "{{ snappymail_group }}"
         mode: "0644"

@@ -19,10 +19,10 @@
 - name: Config snappymail
   ansible.builtin.include_tasks: config.yml
 
-# Post-config phase
-- name: Post-config snappymail
-  ansible.builtin.include_tasks: post-config.yml
-
 # Flush handlers
 - name: Force all handlers to run now
   ansible.builtin.meta: flush_handlers
+
+# Post-config phase
+- name: Post-config snappymail
+  ansible.builtin.include_tasks: post-config.yml

@@ -383,6 +383,7 @@ molecule:
       - firewalld
       - iptables
       - reboot
+      - showinfo
       - ufw
       - unbound
   nodes:

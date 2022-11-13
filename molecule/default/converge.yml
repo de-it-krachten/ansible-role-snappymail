@@ -29,6 +29,7 @@
         state: directory
         mode: "0700"
   roles:
+    - hosts
     - openssl
     - {'role': 'apache', 'when': "ansible_os_family == 'RedHat'"}
     - {'role': 'nginx', 'when': "ansible_os_family == 'Debian'"}

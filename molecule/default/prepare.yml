@@ -37,6 +37,7 @@
       - almalinux9
     systemctl_alternative: False
   roles:
+    - showinfo
     - facts
   tasks:
 

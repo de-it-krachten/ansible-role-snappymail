@@ -42,6 +42,23 @@ Note:
 ## Role Variables
 ### defaults/main.yml
 <pre><code>
+# Required variables (no default):
+# ----------------------------------------------------------
+# Snappymail location (where webserver will search)
+# snappymail_path: /var/www/webmail.example.com/public_html
+
+# Snappymail logfile location
+# snappymail_log: /var/www/webmail.example.com/log
+
+
+
+# Optional variables (with default):
+# ----------------------------------------------------------
+
+# Location where snappymail will write data
+# snappymail_data_path: "{{ snappymail_path }}/data"
+snappymail_data_path: "/var/lib/snappymail"
+
 # snappymail version
 snappymail_version: latest
 
@@ -56,10 +73,7 @@ snappymail_url: >-
 snappymail_tmpdir: /tmp
 
 # local file
-snappymail_file: '{{ snappymail_tmpdir }}/snappymail-community-latest.zip'
-
-# temporary directory
-snappymail_tmp: "{{ snappymail_tmpdir }}/snappymail-tmp"
+snappymail_file: "{{ snappymail_tmpdir }}/{{ snappymail_url | basename }}"
 
 # OS user/group
 snappymail_user: "{{ 'apache' if snappymail_web_server == 'apache' else 'www-data' }}"
@@ -144,6 +158,7 @@ snappymail_php_socket: /var/run/php/php-fpm.sock
         state: directory
         mode: "0700"
   roles:
+    - hosts
     - openssl
     - {'role': 'apache', 'when': "ansible_os_family == 'RedHat'"}
     - {'role': 'nginx', 'when': "ansible_os_family == 'Debian'"}

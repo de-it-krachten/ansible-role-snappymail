@@ -18,6 +18,7 @@ platforms:
 molecule:
   converge:
     roles:
+      - hosts
       - openssl
       - { role: apache, when: ansible_os_family == 'RedHat' }
       - { role: nginx, when: ansible_os_family == 'Debian' }
@@ -55,6 +56,7 @@ molecule:
       snappymail_web_server: "{{ 'apache' if ansible_os_family == 'RedHat' else 'nginx' }}"
   requirements:
     roles_extra:
+      - hosts
       - apache
       - nginx
       - openssl
