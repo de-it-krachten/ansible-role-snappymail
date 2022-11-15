@@ -9,7 +9,8 @@
 - name: Force data file creation
   ansible.builtin.uri:
     url: "https://{{ snappymail_vhost }}/?admin"
-    validate_certs: false
+    validate_certs: no
+    follow_redirects: all
 
 - name: Read initial admin password
   ansible.builtin.command:

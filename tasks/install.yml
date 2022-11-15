@@ -48,6 +48,8 @@
         src: "{{ snappymail_data_path }}"
         dest: "{{ snappymail_path }}/data"
         state: link
+      tags:
+        - molecule-idempotence-notest
 
 - name: Extract the software
   ansible.builtin.unarchive:

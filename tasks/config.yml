@@ -34,6 +34,8 @@
     path: "{{ snappymail_path }}/data"
     state: absent
   when: snappymail_data_path != snappymail_path+'/data'
+  tags:
+    - molecule-idempotence-notest
 
 - name: Check if initial config is done
   ansible.builtin.stat:
